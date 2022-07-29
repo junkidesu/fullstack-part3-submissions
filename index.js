@@ -4,7 +4,15 @@ const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
-app.use(morgan('tiny'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
+morgan.token('body', (request, response) => {
+    if (request.method === 'POST') {
+        return JSON.stringify(request.body)
+    } else {
+        return " "
+    }
+})
 
 let persons = [
     {
@@ -63,7 +71,7 @@ app.delete('/api/persons/:id', (request, response) => {
 app.post('/api/persons', (request, response) => {
     const id = Math.floor(Math.random() * 100000)
 
-    const person = request.body
+    const person = { ...request.body }
 
     if (!person.name || !person.number) {
         return response.status(400).json(
